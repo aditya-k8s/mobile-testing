@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Family Monitor</string>
+    <!-- Overrides react-native-webrtc's screen-capture foreground notification. -->
+    <string name="media_projection_notification_title">Your screen is being shared</string>
+    <string name="media_projection_notification_text">Your parent can see your screen. Open Family Monitor to stop.</string>
+    <string name="ongoing_notification_channel_name">Screen sharing</string>
+</resources>

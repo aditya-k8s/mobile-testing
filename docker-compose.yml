@@ -1,0 +1,81 @@
+# Family Monitor: full server stack.
+#
+#   ./deploy/setup.sh            first time: writes .env with random secrets, then starts everything
+#   docker compose up -d --build  later updates
+#
+# Services:
+#   web    nginx: dashboard + /api + /ws on port 80
+#   api    FastAPI backend (internal only)
+#   db     PostgreSQL 16 (internal only, data in the "pgdata" volume)
+#   turn   coturn TURN/STUN relay so live screen sharing works across networks (mobile data, NAT)
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: family_monitor
+      POSTGRES_USER: family
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run deploy/setup.sh to create .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U family -d family_monitor"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://family:${POSTGRES_PASSWORD}@db:5432/family_monitor
+      JWT_SECRET: ${JWT_SECRET:?run deploy/setup.sh to create .env}
+      ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+      CORS_ORIGINS: ""
+      ICE_SERVERS: >-
+        [{"urls":["stun:${SERVER_IP}:3478"]},
+         {"urls":["turn:${SERVER_IP}:3478?transport=udp","turn:${SERVER_IP}:3478?transport=tcp"],
+          "username":"family","credential":"${TURN_PASSWORD}"}]
+      FCM_SERVICE_ACCOUNT_FILE: ${FCM_SERVICE_ACCOUNT_FILE:-}
+
+  web:
+    build: ./parent-web
+    restart: unless-stopped
+    depends_on: [api]
+    ports:
+      - "80:80"
+
+  turn:
+    image: coturn/coturn:4.6
+    restart: unless-stopped
+    # Host networking: TURN needs the real public address and a UDP port range.
+    network_mode: host
+    command:
+      - -n
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+      - --external-ip=${SERVER_IP:?run deploy/setup.sh to create .env}
+      - --realm=family-monitor
+      - --lt-cred-mech
+      - --user=family:${TURN_PASSWORD:?run deploy/setup.sh to create .env}
+      - --fingerprint
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+      - --no-multicast-peers
+      # Never relay into private networks (protects the server's own network).
+      - --denied-peer-ip=0.0.0.0-0.255.255.255
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
+      - --denied-peer-ip=169.254.0.0-169.254.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      - --log-file=stdout
+
+volumes:
+  pgdata:

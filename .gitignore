@@ -1,0 +1,10 @@
+.env
+*.db
+__pycache__/
+.venv/
+.pytest_cache/
+node_modules/
+dist/
+child-app/android/app/google-services.json
+*.keystore
+!child-app/android/app/debug.keystore

@@ -1,0 +1,6 @@
+{
+  "react-native": {
+    "messaging_android_notification_channel_id": "share_requests",
+    "messaging_auto_init_enabled": true
+  }
+}
