@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-export const DEFAULT_SERVER_URL = 'http://20.68.130.169'; // your server (nginx on port 80)
+export const DEFAULT_SERVER_URL = 'http://20.68.130.169:8001'; // your server (nginx on WEB_PORT 8001)
 
 export const colours = {
   bg: '#f5f6f4',
