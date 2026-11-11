@@ -20,6 +20,7 @@ SERVER_IP=$IP
 POSTGRES_PASSWORD=$(openssl rand -hex 24)
 JWT_SECRET=$(openssl rand -hex 32)
 TURN_PASSWORD=$(openssl rand -hex 16)
+WEB_PORT=80
 ALLOW_REGISTRATION=true
 FCM_SERVICE_ACCOUNT_FILE=
 EOF
@@ -29,7 +30,7 @@ fi
 
 # Host firewall (Ubuntu ufw). Cloud firewalls (e.g. Azure NSG) must allow the same ports.
 if command -v ufw >/dev/null 2>&1 && sudo ufw status | grep -q "Status: active"; then
-  sudo ufw allow 80/tcp
+  sudo ufw allow "$(grep -E '^WEB_PORT=' .env | cut -d= -f2 || echo 80)/tcp"
   sudo ufw allow 3478/tcp
   sudo ufw allow 3478/udp
   sudo ufw allow 49160:49200/udp
@@ -38,5 +39,7 @@ fi
 sudo docker compose up -d --build
 sudo docker compose ps
 echo
-echo "Dashboard: http://$IP"
-echo "Child app server address: http://$IP"
+PORT=$(grep -E '^WEB_PORT=' .env | cut -d= -f2); PORT=${PORT:-80}
+SUFFIX=""; [ "$PORT" != "80" ] && SUFFIX=":$PORT"
+echo "Dashboard: http://$IP$SUFFIX"
+echo "Child app server address: http://$IP$SUFFIX"

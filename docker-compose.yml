@@ -4,7 +4,7 @@
 #   docker compose up -d --build  later updates
 #
 # Services:
-#   web    nginx: dashboard + /api + /ws on port 80
+#   web    nginx: dashboard + /api + /ws on WEB_PORT (default 80)
 #   api    FastAPI backend (internal only)
 #   db     PostgreSQL 16 (internal only, data in the "pgdata" volume)
 #   turn   coturn TURN/STUN relay so live screen sharing works across networks (mobile data, NAT)
@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
     depends_on: [api]
     ports:
-      - "80:80"
+      - "${WEB_PORT:-80}:80"
 
   turn:
     image: coturn/coturn:4.6
