@@ -111,7 +111,9 @@ export function LiveProvider({ children }: { children: ReactNode }) {
               setNotifications((n) => [e, ...n].slice(0, 50))
               setUnread((n) => n + 1)
               pushToast(e.message)
-              if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+              // Inside the Parent Android app: native notification (shown only while backgrounded).
+              window.FamilyMonitorApp?.notify('Family Monitor', e.message)
+              if (!window.FamilyMonitorApp && document.hidden && 'Notification' in window && Notification.permission === 'granted') {
                 new Notification('Family Monitor', { body: e.message, tag: String(e.id) })
               }
             }

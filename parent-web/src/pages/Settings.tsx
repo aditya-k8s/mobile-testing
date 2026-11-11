@@ -109,7 +109,12 @@ export default function Settings() {
             Notifications appear in the dashboard while it is open. You can also allow browser notifications so you are
             alerted while this tab is in the background.
           </p>
-          {perm === 'granted' ? (
+          {window.FamilyMonitorApp ? (
+            <p className="muted small">
+              You are using the Family Monitor Parent app. Alerts appear as phone notifications while the app is open
+              in the background. If you swipe the app away, alerts resume the next time you open it.
+            </p>
+          ) : perm === 'granted' ? (
             <p className="muted small">Browser notifications are on.</p>
           ) : perm === 'denied' ? (
             <p className="muted small">Browser notifications are blocked. Change this in your browser’s site settings.</p>

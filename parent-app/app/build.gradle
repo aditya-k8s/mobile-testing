@@ -1,0 +1,57 @@
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+
+// The dashboard this app opens. Override with:  gradlew assembleRelease -PserverUrl=https://family.example.com
+def serverUrl = (project.findProperty("serverUrl") ?: "http://20.68.130.169:8001").toString().replaceAll('/+$', '')
+
+// Release signing: point FM_KEYSTORE_PROPERTIES at a keystore.properties file kept OUTSIDE the repository
+// (storeFile, storePassword, keyAlias, keyPassword). Without it the build falls back to the debug key,
+// which is only suitable for personal testing.
+def keystoreProps = new Properties()
+def keystorePropsPath = System.getenv("FM_KEYSTORE_PROPERTIES")
+if (keystorePropsPath && file(keystorePropsPath).exists()) {
+    file(keystorePropsPath).withInputStream { keystoreProps.load(it) }
+}
+
+android {
+    namespace "com.familymonitor.parent"
+    compileSdk 37
+
+    defaultConfig {
+        applicationId "com.familymonitor.parent"
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+        buildConfigField "String", "SERVER_URL", "\"${serverUrl}\""
+        // Plain HTTP is only permitted when the configured server is http://.
+        manifestPlaceholders = [networkSecurityConfig: serverUrl.startsWith("http://") ? "@xml/nsc_cleartext" : "@xml/nsc_secure"]
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    signingConfigs {
+        if (!keystoreProps.isEmpty()) {
+            release {
+                storeFile file(keystoreProps["storeFile"])
+                storePassword keystoreProps["storePassword"]
+                keyAlias keystoreProps["keyAlias"]
+                keyPassword keystoreProps["keyPassword"]
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig keystoreProps.isEmpty() ? signingConfigs.debug : signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}

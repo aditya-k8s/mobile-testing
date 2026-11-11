@@ -91,6 +91,19 @@ android {
         versionName "1.0"
     }
     signingConfigs {
+        // Release signing: set FM_KEYSTORE_PROPERTIES to a keystore.properties file kept OUTSIDE the
+        // repository. Without it, release builds fall back to the public debug key (testing only).
+        def keystoreProps = new Properties()
+        def keystorePropsPath = System.getenv("FM_KEYSTORE_PROPERTIES")
+        if (keystorePropsPath && file(keystorePropsPath).exists()) {
+            file(keystorePropsPath).withInputStream { keystoreProps.load(it) }
+            release {
+                storeFile file(keystoreProps["storeFile"])
+                storePassword keystoreProps["storePassword"]
+                keyAlias keystoreProps["keyAlias"]
+                keyPassword keystoreProps["keyPassword"]
+            }
+        }
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
@@ -104,9 +117,7 @@ android {
             manifestPlaceholders = [networkSecurityConfig: "@xml/nsc_cleartext"]
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.findByName("release") ?: signingConfigs.debug
             // HTTPS only by default. Build with -PallowCleartext=true for a LAN test APK
             // that can talk to an http:// backend.
             manifestPlaceholders = [networkSecurityConfig:

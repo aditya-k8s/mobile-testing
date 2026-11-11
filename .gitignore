@@ -8,3 +8,11 @@ dist/
 child-app/android/app/google-services.json
 *.keystore
 !child-app/android/app/debug.keystore
+
+# Android (parent-app)
+local.properties
+.gradle/
+build/
+.kotlin/
+keystore.properties
+*.jks

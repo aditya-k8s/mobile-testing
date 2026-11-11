@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phone outline inside the adaptive-icon safe zone (108dp canvas, content within the central 66dp). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:translateX="36" android:translateY="30">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M6,0h24c3.3,0 6,2.7 6,6v36c0,3.3 -2.7,6 -6,6H6c-3.3,0 -6,-2.7 -6,-6V6c0,-3.3 2.7,-6 6,-6zM4,7v32h28V7H4zM15,42v2h6v-2h-6z" />
+    </group>
+</vector>
